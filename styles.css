@@ -1,4 +1,46 @@
 /* ========================================
+   INSTALL BANNER STYLES
+   ======================================== */
+
+.install-banner {
+    background: linear-gradient(135deg, #d4a5e8, #a5d8e8);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-md);
+}
+
+.install-banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.install-banner-text {
+    flex: 1;
+    color: white;
+}
+
+.install-banner-text strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.install-banner-text p {
+    font-size: 12px;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.install-banner-buttons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ========================================
    FLIPFORGE PWA - STYLES
    ======================================== */
 
