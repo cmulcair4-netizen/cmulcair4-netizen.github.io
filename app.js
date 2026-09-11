@@ -1,5 +1,5 @@
 // ========================================
-// FLIPFORGE PWA - MAIN APPLICATION
+// FLIPFORGE PWA - ENHANCED MAIN APPLICATION
 // ========================================
 
 class FlipForge {
@@ -18,17 +18,19 @@ class FlipForge {
             ledger: [],
             selectedDealForAnalysis: null,
             selectedDealForMessage: null,
-            currentPage: 'home'
+            currentPage: 'home',
+            lastSync: null,
+            appVersion: '1.0.0'
         };
 
         this.levels = [
-            { level: 1, title: 'Scout', threshold: 0 },
-            { level: 2, title: 'Hunter', threshold: 300 },
-            { level: 3, title: 'Flipper', threshold: 500 },
-            { level: 4, title: 'Deal Maker', threshold: 800 },
-            { level: 5, title: 'FlipForge Pro', threshold: 1200 },
-            { level: 6, title: 'Profit Hunter', threshold: 1600 },
-            { level: 7, title: '€2K Boss', threshold: 2000 }
+            { level: 1, title: 'Scout', threshold: 0, emoji: '🔍' },
+            { level: 2, title: 'Hunter', threshold: 300, emoji: '🎯' },
+            { level: 3, title: 'Flipper', threshold: 500, emoji: '🔄' },
+            { level: 4, title: 'Deal Maker', threshold: 800, emoji: '💼' },
+            { level: 5, title: 'FlipForge Pro', threshold: 1200, emoji: '⭐' },
+            { level: 6, title: 'Profit Hunter', threshold: 1600, emoji: '🏆' },
+            { level: 7, title: '€2K Boss', threshold: 2000, emoji: '👑' }
         ];
 
         this.loadState();
@@ -36,10 +38,12 @@ class FlipForge {
         this.attachEventListeners();
         this.applyTheme();
         this.updateAllDisplays();
+        this.setupNotifications();
+        this.checkForUpdates();
     }
 
     // ========================================
-    // STATE MANAGEMENT
+    // STATE MANAGEMENT & STORAGE
     // ========================================
 
     loadState() {
@@ -56,6 +60,21 @@ class FlipForge {
 
     saveState() {
         localStorage.setItem('flipforge-state', JSON.stringify(this.state));
+        this.state.lastSync = new Date().toISOString();
+    }
+
+    // Sync state across tabs
+    setupSyncListener() {
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'flipforge-state' && e.newValue) {
+                try {
+                    this.state = JSON.parse(e.newValue);
+                    this.updateAllDisplays();
+                } catch (error) {
+                    console.error('Failed to sync state:', error);
+                }
+            }
+        });
     }
 
     // ========================================
@@ -63,16 +82,13 @@ class FlipForge {
     // ========================================
 
     initUI() {
-        // Set up navigation
         document.querySelectorAll('.nav-button').forEach(btn => {
             btn.addEventListener('click', () => this.navigateTo(btn.dataset.page));
         });
 
-        // Set initial theme
         this.applyTheme();
-
-        // Show initial page
         this.navigateTo('home');
+        this.setupSyncListener();
     }
 
     attachEventListeners() {
@@ -172,25 +188,21 @@ class FlipForge {
     // ========================================
 
     navigateTo(pageName) {
-        // Hide all pages
         document.querySelectorAll('.page').forEach(page => {
             page.classList.remove('active');
         });
 
-        // Show target page
         const targetPage = document.getElementById(`page-${pageName}`);
         if (targetPage) {
             targetPage.classList.add('active');
         }
 
-        // Update nav buttons
         document.querySelectorAll('.nav-button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.page === pageName);
         });
 
         this.state.currentPage = pageName;
 
-        // Update page-specific content
         if (pageName === 'home') {
             this.updateHomeDisplay();
         } else if (pageName === 'deals') {
@@ -202,6 +214,9 @@ class FlipForge {
         } else if (pageName === 'message') {
             this.updateMessageDisplay();
         }
+
+        // Scroll to top
+        document.querySelector('.pages-container').scrollTop = 0;
     }
 
     // ========================================
@@ -214,7 +229,6 @@ class FlipForge {
         const activeDeals = this.state.deals.filter(d => d.status && !['passed', 'sold'].includes(d.status)).length;
         const avgROI = this.calculateAverageROI();
 
-        // Update displays
         document.getElementById('currentBankroll').textContent = this.formatCurrency(this.state.currentBankroll);
         document.getElementById('displayTarget').textContent = this.formatCurrency(this.state.targetBankroll);
         document.getElementById('startBankroll').textContent = this.formatCurrency(this.state.startBankroll);
@@ -225,17 +239,14 @@ class FlipForge {
         document.getElementById('progressBarFill').style.width = Math.max(0, Math.min(100, progress)) + '%';
 
         const level = this.getCurrentLevel();
-        document.getElementById('currentLevel').textContent = level.title;
+        document.getElementById('currentLevel').innerHTML = `${level.emoji} ${level.title}`;
 
         document.getElementById('profitMade').textContent = this.formatCurrency(profit);
         document.getElementById('successfulFlips').textContent = successfulFlips;
         document.getElementById('activeDeals').textContent = activeDeals;
         document.getElementById('avgROI').textContent = Math.round(avgROI);
 
-        // Update hot deals
         this.updateHotDealsDisplay();
-
-        // Update next milestone
         this.updateNextMilestoneDisplay();
     }
 
@@ -267,7 +278,7 @@ class FlipForge {
         
         if (nextLevel) {
             document.getElementById('nextMilestoneAmount').textContent = this.formatCurrency(nextLevel.threshold);
-            document.querySelector('.milestone-level').textContent = `Level ${nextLevel.level} — ${nextLevel.title}`;
+            document.querySelector('.milestone-level').textContent = `Level ${nextLevel.level} — ${nextLevel.emoji} ${nextLevel.title}`;
         }
     }
 
@@ -324,7 +335,6 @@ class FlipForge {
             year: 'Not provided'
         };
 
-        // Extract platform
         if (text.includes('donedeal.ie')) deal.platform = 'DoneDeal';
         else if (text.includes('adverts.ie')) deal.platform = 'Adverts.ie';
         else if (text.includes('ebay.com') || text.includes('ebay.ie')) deal.platform = 'eBay';
@@ -332,19 +342,16 @@ class FlipForge {
         else if (text.includes('gumtree')) deal.platform = 'Gumtree';
         else deal.platform = 'Unknown';
 
-        // Extract price - look for currency symbols followed by numbers
         const priceMatch = text.match(/[€$£][\s]?(\d+(?:[.,]\d{2})?)/);
         if (priceMatch) {
             deal.askingPrice = parseFloat(priceMatch[1].replace(',', '.'));
         }
 
-        // Extract title - first sentence or line
         const titleMatch = text.match(/^(.{10,100}?)[\n.!?]/m);
         if (titleMatch) {
             deal.title = titleMatch[1].trim().substring(0, 100);
         }
 
-        // Extract location - look for common Irish locations
         const irelandLocations = ['Cork', 'Dublin', 'Galway', 'Limerick', 'Waterford', 'Kerry', 'Mayo', 'Donegal', 'Wicklow', 'Wexford'];
         for (const location of irelandLocations) {
             if (text.includes(location)) {
@@ -353,7 +360,6 @@ class FlipForge {
             }
         }
 
-        // Extract condition
         if (text.toLowerCase().includes('new')) deal.condition = 'New';
         else if (text.toLowerCase().includes('like new')) deal.condition = 'Like New';
         else if (text.toLowerCase().includes('unused')) deal.condition = 'Unused';
@@ -366,11 +372,9 @@ class FlipForge {
     }
 
     showAnalysis(deal) {
-        // Calculate analysis
         const analysis = this.analyzeDeal(deal);
         deal = { ...deal, ...analysis };
 
-        // Save to deals
         const existingIndex = this.state.deals.findIndex(d => d.id === deal.id);
         if (existingIndex >= 0) {
             this.state.deals[existingIndex] = deal;
@@ -379,11 +383,9 @@ class FlipForge {
         }
         this.saveState();
 
-        // Navigate to analysis page
         this.navigateTo('analysis');
         this.displayAnalysis(deal);
 
-        // Clear inputs
         document.getElementById('advertInput').value = '';
         document.getElementById('quickTitle').value = '';
         document.getElementById('quickPrice').value = '';
@@ -414,36 +416,55 @@ class FlipForge {
             return analysis;
         }
 
-        // Estimate resale based on category/type heuristics
-        if (deal.title && deal.title.toLowerCase().includes('dewalt')) {
-            analysis.resaleLow = deal.askingPrice * 1.2;
-            analysis.resaleHigh = deal.askingPrice * 1.5;
-            analysis.confidence = 78;
-            analysis.evidence.push('DeWalt tools have strong resale demand');
-        } else if (deal.title && deal.title.toLowerCase().includes('iphone')) {
-            analysis.resaleLow = deal.askingPrice * 0.95;
-            analysis.resaleHigh = deal.askingPrice * 1.15;
-            analysis.confidence = 65;
-            analysis.evidence.push('Mobile phones depreciate quickly');
-        } else if (deal.title && deal.title.toLowerCase().includes('playstation')) {
+        // Enhanced resale estimation based on item type
+        const lowerTitle = deal.title.toLowerCase();
+        
+        if (lowerTitle.includes('dewalt') || lowerTitle.includes('makita') || lowerTitle.includes('bosch')) {
+            analysis.resaleLow = deal.askingPrice * 1.25;
+            analysis.resaleHigh = deal.askingPrice * 1.6;
+            analysis.confidence = 85;
+            analysis.timeToSell = 4;
+            analysis.evidence.push('Professional power tools have strong demand');
+        } else if (lowerTitle.includes('iphone') || lowerTitle.includes('samsung') || lowerTitle.includes('pixel')) {
+            analysis.resaleLow = deal.askingPrice * 0.9;
+            analysis.resaleHigh = deal.askingPrice * 1.1;
+            analysis.confidence = 70;
+            analysis.timeToSell = 3;
+            analysis.evidence.push('Smartphones have stable secondhand market');
+        } else if (lowerTitle.includes('playstation') || lowerTitle.includes('xbox') || lowerTitle.includes('nintendo')) {
             analysis.resaleLow = deal.askingPrice * 1.1;
-            analysis.resaleHigh = deal.askingPrice * 1.3;
-            analysis.confidence = 72;
-            analysis.evidence.push('Gaming consoles are relatively stable');
-        } else {
-            // Generic estimate
+            analysis.resaleHigh = deal.askingPrice * 1.35;
+            analysis.confidence = 75;
+            analysis.timeToSell = 5;
+            analysis.evidence.push('Gaming consoles hold value well');
+        } else if (lowerTitle.includes('laptop') || lowerTitle.includes('macbook') || lowerTitle.includes('dell')) {
             analysis.resaleLow = deal.askingPrice * 1.05;
             analysis.resaleHigh = deal.askingPrice * 1.25;
-            analysis.confidence = 40;
+            analysis.confidence = 65;
+            analysis.timeToSell = 6;
+            analysis.evidence.push('Laptops depreciate but have demand');
+        } else if (lowerTitle.includes('bike') || lowerTitle.includes('bicycle')) {
+            analysis.resaleLow = deal.askingPrice * 1.1;
+            analysis.resaleHigh = deal.askingPrice * 1.4;
+            analysis.confidence = 72;
+            analysis.timeToSell = 8;
+            analysis.evidence.push('Bicycles have seasonal demand');
+        } else {
+            analysis.resaleLow = deal.askingPrice * 1.08;
+            analysis.resaleHigh = deal.askingPrice * 1.2;
+            analysis.confidence = 45;
         }
 
-        // Add risk flags based on condition
         if (deal.condition === 'Fair' || deal.condition === 'Not provided') {
             analysis.riskFlags.push('Uncertain condition');
             analysis.confidence -= 15;
         }
 
-        // Calculate costs
+        if (deal.condition === 'New') {
+            analysis.confidence += 10;
+            analysis.evidence.push('Brand new item typically has better resale');
+        }
+
         if (typeof this.state.sellCost === 'string' && this.state.sellCost.includes('%')) {
             const percentage = parseInt(this.state.sellCost) / 100;
             analysis.estimatedCosts = analysis.resaleLow * percentage + this.state.transportCost;
@@ -451,32 +472,27 @@ class FlipForge {
             analysis.estimatedCosts = parseFloat(this.state.sellCost) + this.state.transportCost;
         }
 
-        // Calculate profit
         analysis.estimatedProfit = Math.max(0, analysis.resaleLow - deal.askingPrice - analysis.estimatedCosts);
         analysis.estimatedProfitHigh = Math.max(0, analysis.resaleHigh - deal.askingPrice - analysis.estimatedCosts);
 
-        // Calculate ROI
         if (deal.askingPrice > 0) {
             analysis.roi = Math.round((analysis.estimatedProfit / deal.askingPrice) * 100);
             analysis.roiHigh = Math.round((analysis.estimatedProfitHigh / deal.askingPrice) * 100);
         }
 
-        // Calculate max buy price
         const targetProfit = analysis.resaleLow * (this.state.minROI / 100);
         analysis.maxBuy = Math.max(0, analysis.resaleLow - analysis.estimatedCosts - targetProfit);
         analysis.openingOffer = Math.round(analysis.maxBuy * 0.9);
         analysis.walkAwayPrice = Math.round(deal.askingPrice);
 
-        // Make recommendation
-        if (analysis.confidence >= 70 && analysis.roi >= this.state.minROI && analysis.estimatedProfit > 10) {
+        if (analysis.confidence >= 75 && analysis.roi >= this.state.minROI && analysis.estimatedProfit > 15) {
             analysis.recommendation = 'buy';
-        } else if (analysis.confidence >= 50 && analysis.roi >= (this.state.minROI * 0.75)) {
+        } else if (analysis.confidence >= 55 && analysis.roi >= (this.state.minROI * 0.75)) {
             analysis.recommendation = 'negotiate';
         } else {
             analysis.recommendation = 'pass';
         }
 
-        // Adjust confidence
         analysis.confidence = Math.max(0, Math.min(100, analysis.confidence));
 
         return analysis;
@@ -493,7 +509,7 @@ class FlipForge {
                     ${deal.recommendation.toUpperCase()}
                 </div>
                 <div class="recommendation-reasons">
-                    ${deal.evidence.map(e => `<li>${e}</li>`).join('')}
+                    ${deal.evidence.map(e => `<li>✓ ${e}</li>`).join('')}
                     ${deal.riskFlags.map(f => `<li style="color: var(--danger-color);">⚠️ ${f}</li>`).join('')}
                 </div>
             </div>
@@ -510,10 +526,11 @@ class FlipForge {
             <div class="analysis-section">
                 <h3>Resale Estimates</h3>
                 ${this.createAnalysisItem('Estimated Resale Range', `${this.formatCurrency(deal.resaleLow)} – ${this.formatCurrency(deal.resaleHigh)}`, 'estimate')}
-                ${this.createAnalysisItem('Estimated Costs', this.formatCurrency(analysis.estimatedCosts), 'estimate')}
+                ${this.createAnalysisItem('Estimated Costs', this.formatCurrency(deal.estimatedCosts), 'estimate')}
                 ${this.createAnalysisItem('Potential Profit', `${this.formatCurrency(deal.estimatedProfit)} – ${this.formatCurrency(deal.estimatedProfitHigh)}`, 'estimate')}
                 ${this.createAnalysisItem('ROI', `${deal.roi}% – ${deal.roiHigh}%`, 'estimate')}
                 ${this.createAnalysisItem('Confidence', `${deal.confidence}%`, 'estimate')}
+                ${this.createAnalysisItem('Time to Sell', `~${deal.timeToSell} days`, 'estimate')}
             </div>
 
             <div class="price-highlight">
@@ -525,7 +542,6 @@ class FlipForge {
                 <h3>Negotiation Strategy</h3>
                 ${this.createAnalysisItem('Opening Offer', this.formatCurrency(deal.openingOffer))}
                 ${this.createAnalysisItem('Walk-Away Price', this.formatCurrency(deal.walkAwayPrice))}
-                ${this.createAnalysisItem('Time to Sell (Est.)', `${deal.timeToSell} days`, 'estimate')}
             </div>
 
             <div class="action-buttons">
@@ -533,7 +549,7 @@ class FlipForge {
                 <button class="button button-secondary" onclick="app.negotiateDeal('${deal.id}')">🟠 NEGOTIATE</button>
             </div>
             <div class="action-buttons" style="margin-top: 8px;">
-                <button class="button button-secondary" onclick="app.messageSeller('${deal.id}')">💬 MESSAGE SELLER</button>
+                <button class="button button-secondary" onclick="app.messageSeller('${deal.id}')">💬 MESSAGE</button>
                 <button class="button button-secondary" onclick="app.passDeal('${deal.id}')">🔴 PASS</button>
             </div>
         `;
@@ -559,7 +575,7 @@ class FlipForge {
         if (deal) {
             deal.status = 'bought';
             this.saveState();
-            alert(`Deal marked as BOUGHT: ${deal.title}`);
+            this.showNotification(`✅ Deal marked as BOUGHT: ${deal.title}`);
             this.navigateTo('deals');
         }
     }
@@ -578,7 +594,7 @@ class FlipForge {
         if (deal) {
             deal.status = 'passed';
             this.saveState();
-            alert(`Deal passed: ${deal.title}`);
+            this.showNotification(`❌ Deal passed: ${deal.title}`);
             this.navigateTo('deals');
         }
     }
@@ -788,17 +804,19 @@ class FlipForge {
         const askPrice = deal.askingPrice;
 
         return {
-            'Best First Message': `Hi, is this still available? I'm interested in the ${title}. Can you tell me more about the condition? Thanks`,
+            'Best First Message': `Hi, is this still available? I'm interested in the ${title}. What's the best price you can do? Thanks`,
 
             'Firmer Offer': `Hi, I'm interested in the ${title}. I can offer €${maxBuy} if you're open to negotiation. Let me know. Thanks`,
 
-            'Pickup-Focused': `Hi, is this still available? I can collect today or this weekend. What's the best price you can do? Thanks`
+            'Time-Sensitive': `Hi, is this still available? I can collect today or tomorrow. What's your absolute best price? Cheers`,
+            
+            'Professional': `Good morning, I'm interested in purchasing your ${title}. Could you confirm the condition and any faults? Available for pickup at your convenience.`
         };
     }
 
     copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
-            alert('Message copied to clipboard!');
+            this.showNotification('✅ Message copied to clipboard!');
         }).catch(() => {
             alert('Failed to copy. Try again.');
         });
@@ -870,8 +888,8 @@ class FlipForge {
                     </div>
                 </div>
                 <div class="ledger-entry-actions">
-                    <button class="button button-secondary" onclick="app.editTransaction('${tx.id}')">Edit</button>
-                    <button class="button button-danger" onclick="app.deleteTransaction('${tx.id}')">Delete</button>
+                    <button class="button button-secondary" onclick="app.editTransaction('${tx.id}')">✏️ Edit</button>
+                    <button class="button button-danger" onclick="app.deleteTransaction('${tx.id}')">🗑️ Delete</button>
                 </div>
             </div>
         `;
@@ -919,10 +937,11 @@ class FlipForge {
 
         this.state.ledger.push(transaction);
 
-        // Update current bankroll if sold
         if (status === 'sold') {
             const profit = salePrice - purchasePrice - costs;
             this.state.currentBankroll += profit;
+            this.showNotification(`🎉 Sold ${item} - Profit: ${this.formatCurrency(profit)}`);
+            this.checkForLevelUp();
         }
 
         this.saveState();
@@ -931,7 +950,18 @@ class FlipForge {
     }
 
     editTransaction(txId) {
-        alert('Edit functionality coming soon');
+        const tx = this.state.ledger.find(t => t.id === txId);
+        if (!tx) return;
+
+        document.getElementById('transactionModal').classList.add('active');
+        document.getElementById('modalOverlay').classList.add('active');
+        document.getElementById('transactionModalTitle').textContent = 'Edit Transaction';
+        document.getElementById('txItem').value = tx.item;
+        document.getElementById('txPurchasePrice').value = tx.purchasePrice;
+        document.getElementById('txCosts').value = tx.costs;
+        document.getElementById('txSalePrice').value = tx.salePrice || 0;
+        document.getElementById('txDate').value = tx.date;
+        document.getElementById('txStatus').value = tx.status;
     }
 
     deleteTransaction(txId) {
@@ -939,6 +969,7 @@ class FlipForge {
             this.state.ledger = this.state.ledger.filter(tx => tx.id !== txId);
             this.saveState();
             this.updateLedgerDisplay();
+            this.showNotification('✅ Transaction deleted');
         }
     }
 
@@ -960,7 +991,8 @@ class FlipForge {
     exportData() {
         const data = {
             state: this.state,
-            exportedAt: new Date().toISOString()
+            exportedAt: new Date().toISOString(),
+            appVersion: this.state.appVersion
         };
 
         const json = JSON.stringify(data, null, 2);
@@ -971,6 +1003,7 @@ class FlipForge {
         a.download = `flipforge-backup-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
+        this.showNotification('✅ Data exported successfully');
     }
 
     importData(e) {
@@ -985,7 +1018,7 @@ class FlipForge {
                     this.state = { ...this.state, ...data.state };
                     this.saveState();
                     this.updateAllDisplays();
-                    alert('Data imported successfully!');
+                    this.showNotification('✅ Data imported successfully!');
                 }
             } catch (error) {
                 alert('Failed to import data. Invalid file format.');
@@ -1052,7 +1085,7 @@ class FlipForge {
 
         this.saveState();
         this.updateAllDisplays();
-        alert('Demo data loaded! (marked as DEMO)');
+        this.showNotification('📦 Demo data loaded!');
     }
 
     clearDemoData() {
@@ -1061,7 +1094,7 @@ class FlipForge {
         this.state.currentBankroll = this.state.startBankroll;
         this.saveState();
         this.updateAllDisplays();
-        alert('Demo data cleared');
+        this.showNotification('🗑️ Demo data cleared');
     }
 
     // ========================================
@@ -1085,11 +1118,10 @@ class FlipForge {
         const formatted = new Intl.NumberFormat('en-IE', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-        }).format(amount);
+        }).format(Math.abs(amount));
 
-        if (this.state.currency === 'GBP') return '£' + formatted;
-        if (this.state.currency === 'USD') return '$' + formatted;
-        return '€' + formatted;
+        const prefix = this.state.currency === 'GBP' ? '£' : this.state.currency === 'USD' ? '$' : '€';
+        return (amount < 0 ? '-' : '') + prefix + formatted;
     }
 
     getCurrentLevel() {
@@ -1103,6 +1135,15 @@ class FlipForge {
         }
 
         return level;
+    }
+
+    checkForLevelUp() {
+        const currentLevel = this.getCurrentLevel();
+        const previousLevel = this.levels.find(l => l.threshold === (this.state.currentBankroll - 1));
+        
+        if (previousLevel && previousLevel.level < currentLevel.level) {
+            this.showNotification(`🎉 LEVEL UP! You're now a ${currentLevel.emoji} ${currentLevel.title}!`);
+        }
     }
 
     calculateTotalProfit() {
@@ -1135,9 +1176,55 @@ class FlipForge {
         }
     }
 
+    // ========================================
+    // NOTIFICATIONS & ALERTS
+    // ========================================
+
+    setupNotifications() {
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                console.log('Notifications already permitted');
+            }
+        }
+    }
+
     requestNotificationPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
+        }
+    }
+
+    showNotification(message) {
+        // Toast-style notification
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            left: 16px;
+            right: 16px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 2000;
+            font-size: 14px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideDown 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    checkForUpdates() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then((registration) => {
+                registration.update();
+            });
         }
     }
 }
