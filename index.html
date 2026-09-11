@@ -2,19 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
     <meta name="description" content="FlipForge - Hunt smarter. Stack profit. Turn €200 into €2,000 through disciplined marketplace flipping.">
     <meta name="theme-color" content="#f5f3ff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FlipForge">
     <meta name="format-detection" content="telephone=no">
+    <meta name="color-scheme" content="light dark">
     
     <title>FlipForge - Hunt smarter. Stack profit.</title>
-    <link rel="manifest" href="/manifest.webmanifest">
-    <link rel="icon" type="image/png" href="/icons/icon-192.png">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="manifest" href="./manifest.webmanifest" crossorigin="use-credentials">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23d4a5e8'/><text x='96' y='140' font-size='80' font-weight='bold' text-anchor='middle' fill='white'>🔥</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23f5f3ff'/><text x='96' y='140' font-size='80' font-weight='bold' text-anchor='middle' fill='%23d4a5e8'>🔥</text></svg>">
+    <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
     <div id="app" class="app-container">
@@ -51,6 +52,19 @@
             <!-- HOME PAGE -->
             <div id="page-home" class="page active">
                 <div class="page-content">
+                    <div id="installPrompt" class="install-banner" style="display: none;">
+                        <div class="install-banner-content">
+                            <div class="install-banner-text">
+                                <strong>Install FlipForge</strong>
+                                <p>Add to your home screen</p>
+                            </div>
+                            <div class="install-banner-buttons">
+                                <button id="installButton" class="button button-primary" style="padding: 8px 16px; font-size: 12px;">Install</button>
+                                <button id="dismissButton" class="button button-secondary" style="padding: 8px 16px; font-size: 12px;">Dismiss</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="header-hero">
                         <h1>FLIPFORGE</h1>
                         <p class="tagline">Hunt smarter. Stack profit.</p>
@@ -406,13 +420,48 @@
     <!-- Modal Overlay -->
     <div id="modalOverlay" class="modal-overlay"></div>
 
-    <script src="/app.js"></script>
+    <script src="./app.js"></script>
     <script>
+        // Handle service worker registration
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(err => {
-                console.log('Service worker registration failed:', err);
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(err => {
+                        console.log('Service worker registration failed:', err);
+                    });
             });
         }
+
+        // Handle PWA install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').style.display = 'block';
+        });
+
+        document.getElementById('installButton').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                document.getElementById('installPrompt').style.display = 'none';
+            }
+        });
+
+        document.getElementById('dismissButton').addEventListener('click', () => {
+            document.getElementById('installPrompt').style.display = 'none';
+        });
+
+        // Hide banner if already installed
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installPrompt').style.display = 'none';
+            console.log('PWA installed successfully');
+        });
     </script>
 </body>
 </html>
