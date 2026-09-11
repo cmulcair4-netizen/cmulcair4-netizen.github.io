@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="FlipForge - Hunt smarter. Stack profit. Turn €200 into €2,000 through disciplined marketplace flipping.">
+    <meta name="theme-color" content="#f5f3ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FlipForge">
+    <meta name="format-detection" content="telephone=no">
+    
+    <title>FlipForge - Hunt smarter. Stack profit.</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Navigation -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-button active" data-page="home" aria-label="Home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </button>
+            <button class="nav-button" data-page="hunt" aria-label="Hunt">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-label">Hunt</span>
+            </button>
+            <button class="nav-button" data-page="deals" aria-label="Deals">
+                <span class="nav-icon">🔥</span>
+                <span class="nav-label">Deals</span>
+            </button>
+            <button class="nav-button" data-page="message" aria-label="Message">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Message</span>
+            </button>
+            <button class="nav-button" data-page="ledger" aria-label="Ledger">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Ledger</span>
+            </button>
+            <button class="nav-button" data-page="settings" aria-label="Settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </button>
+        </nav>
+
+        <!-- Pages Container -->
+        <main class="pages-container">
+            <!-- HOME PAGE -->
+            <div id="page-home" class="page active">
+                <div class="page-content">
+                    <div class="header-hero">
+                        <h1>FLIPFORGE</h1>
+                        <p class="tagline">Hunt smarter. Stack profit.</p>
+                    </div>
+
+                    <div class="bankroll-display">
+                        <div class="bankroll-range">
+                            <span class="bankroll-start">€<span id="startBankroll">200</span></span>
+                            <span class="arrow">→</span>
+                            <span class="bankroll-target">€<span id="targetBankroll">2,000</span></span>
+                        </div>
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="progress-item">
+                            <label>Current Bankroll</label>
+                            <div class="value currency">€<span id="currentBankroll">200.00</span></div>
+                        </div>
+                        <div class="progress-item">
+                            <label>Target</label>
+                            <div class="value currency">€<span id="displayTarget">2,000.00</span></div>
+                        </div>
+                        <div class="progress-item">
+                            <label>Progress</label>
+                            <div class="value percentage"><span id="progressPercent">0</span>%</div>
+                        </div>
+                        <div class="progress-item">
+                            <label>Level</label>
+                            <div class="value level"><span id="currentLevel">Scout</span></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Profit Made</div>
+                            <div class="stat-value currency">€<span id="profitMade">0.00</span></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Successful Flips</div>
+                            <div class="stat-value">
+                                <span id="successfulFlips">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Deals</div>
+                            <div class="stat-value">
+                                <span id="activeDeals">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Avg ROI</div>
+                            <div class="stat-value percentage">
+                                <span id="avgROI">0</span>%
+                            </div>
+                        </div>
+                    </div>
+
+                    <section class="hot-deals-section">
+                        <h2>🔥 HOT HUNTS</h2>
+                        <div id="hotDealsContainer" class="deals-list">
+                            <!-- Hot deals will be populated here -->
+                        </div>
+                        <button class="button button-primary" id="huntButton">🔍 HUNT FOR DEALS</button>
+                    </section>
+
+                    <div class="milestone-section">
+                        <h3>Next Milestone</h3>
+                        <div id="nextMilestone" class="milestone-card">
+                            <div class="milestone-emoji">🎯</div>
+                            <div class="milestone-text">
+                                <div class="milestone-level">Level 2 — Hunter</div>
+                                <div class="milestone-amount">€<span id="nextMilestoneAmount">300</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HUNT PAGE -->
+            <div id="page-hunt" class="page">
+                <div class="page-content">
+                    <h1>Hunt for Deals</h1>
+                    <p class="page-subtitle">Paste an advert link, text, or screenshot</p>
+
+                    <div class="hunt-form">
+                        <div class="form-group">
+                            <label for="advertInput">Paste advert link or text:</label>
+                            <textarea 
+                                id="advertInput" 
+                                class="input input-textarea" 
+                                placeholder="Paste marketplace URL, advert title, description, or any combination..."
+                                rows="5"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Add screenshot (optional):</label>
+                            <div class="file-input-wrapper">
+                                <input 
+                                    type="file" 
+                                    id="screenshotInput" 
+                                    accept="image/*"
+                                    class="file-input"
+                                >
+                                <label for="screenshotInput" class="button button-secondary">📸 Choose Screenshot</label>
+                            </div>
+                            <div id="screenshotPreview" class="screenshot-preview"></div>
+                        </div>
+
+                        <button class="button button-primary button-large" id="analyseDealButton">
+                            Analyse Deal
+                        </button>
+                    </div>
+
+                    <div id="quickDealAdd" class="quick-section">
+                        <h3>Quick Entry</h3>
+                        <div class="form-group">
+                            <label for="quickTitle">Item Title:</label>
+                            <input type="text" id="quickTitle" class="input" placeholder="e.g., DeWalt DCS367 Circular Saw">
+                        </div>
+                        <div class="form-group">
+                            <label for="quickPrice">Asking Price (€):</label>
+                            <input type="number" id="quickPrice" class="input" placeholder="109" min="0" step="0.01">
+                        </div>
+                        <button class="button button-secondary" id="quickAnalyseButton">Analyse Quick Entry</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEAL ANALYSIS PAGE -->
+            <div id="page-analysis" class="page">
+                <div class="page-content">
+                    <div class="analysis-header">
+                        <button class="button-back" id="backFromAnalysis">← Back</button>
+                        <h1 id="analysisTitleDisplay">Deal Analysis</h1>
+                    </div>
+
+                    <div id="analysisContent" class="analysis-content">
+                        <!-- Analysis will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEALS PAGE -->
+            <div id="page-deals" class="page">
+                <div class="page-content">
+                    <h1>Deals Pipeline</h1>
+                    
+                    <div class="filter-bar">
+                        <button class="filter-button" data-filter="all">All</button>
+                        <button class="filter-button" data-filter="buy">🟢 Buy</button>
+                        <button class="filter-button" data-filter="negotiate">🟠 Negotiate</button>
+                        <button class="filter-button" data-filter="high-confidence">80%+ Confidence</button>
+                        <button class="filter-button" data-filter="highest-profit">Highest Profit</button>
+                    </div>
+
+                    <div id="dealsListContainer" class="deals-list">
+                        <!-- Deals will be populated here -->
+                    </div>
+
+                    <div id="noDealsMessage" class="empty-state">
+                        <p>📭 No deals yet. Start hunting!</p>
+                        <button class="button button-primary" id="huntFromDeals">🔍 Hunt for Deals</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEAL DETAIL PAGE -->
+            <div id="page-deal-detail" class="page">
+                <div class="page-content">
+                    <div class="detail-header">
+                        <button class="button-back" id="backFromDetail">← Back</button>
+                        <h1 id="detailTitleDisplay">Deal Details</h1>
+                    </div>
+
+                    <div id="dealDetailContent">
+                        <!-- Deal details will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- MESSAGE PAGE -->
+            <div id="page-message" class="page">
+                <div class="page-content">
+                    <h1>Message Lab</h1>
+                    <p class="page-subtitle">Generate seller messages automatically</p>
+
+                    <div id="messageLabContent">
+                        <div class="empty-state">
+                            <p>💬 Select a deal to generate messages</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEDGER PAGE -->
+            <div id="page-ledger" class="page">
+                <div class="page-content">
+                    <h1>Ledger</h1>
+                    <p class="page-subtitle">Track your flips and profit</p>
+
+                    <div class="ledger-controls">
+                        <button class="button button-secondary" id="addTransactionButton">+ Add Transaction</button>
+                    </div>
+
+                    <div id="ledgerContent" class="ledger-list">
+                        <!-- Ledger entries will be populated here -->
+                    </div>
+
+                    <div id="noLedgerMessage" class="empty-state">
+                        <p>📊 No transactions yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADD TRANSACTION MODAL -->
+            <div id="transactionModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="transactionModalTitle">Add Transaction</h2>
+                        <button class="modal-close" id="closeTransactionModal">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="txItem">Item:</label>
+                            <input type="text" id="txItem" class="input" placeholder="Item name">
+                        </div>
+                        <div class="form-group">
+                            <label for="txPurchasePrice">Purchase Price (€):</label>
+                            <input type="number" id="txPurchasePrice" class="input" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="txCosts">Other Costs (€):</label>
+                            <input type="number" id="txCosts" class="input" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="txSalePrice">Sale Price (€):</label>
+                            <input type="number" id="txSalePrice" class="input" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="txDate">Date:</label>
+                            <input type="date" id="txDate" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label for="txStatus">Status:</label>
+                            <select id="txStatus" class="input">
+                                <option value="bought">Bought</option>
+                                <option value="listed">Listed</option>
+                                <option value="sold">Sold</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="button button-secondary" id="cancelTransactionButton">Cancel</button>
+                        <button class="button button-primary" id="saveTransactionButton">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div id="page-settings" class="page">
+                <div class="page-content">
+                    <h1>Settings</h1>
+
+                    <section class="settings-section">
+                        <h2>Game Configuration</h2>
+                        <div class="form-group">
+                            <label for="settingStartBankroll">Starting Bankroll (€):</label>
+                            <input type="number" id="settingStartBankroll" class="input" min="1" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingTargetBankroll">Target Bankroll (€):</label>
+                            <input type="number" id="settingTargetBankroll" class="input" min="1" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingMinROI">Minimum Desired ROI (%):</label>
+                            <input type="number" id="settingMinROI" class="input" min="0" max="100" step="1">
+                        </div>
+                    </section>
+
+                    <section class="settings-section">
+                        <h2>Cost Assumptions</h2>
+                        <div class="form-group">
+                            <label for="settingSellCost">Selling Cost Allowance (€ or %):</label>
+                            <input type="text" id="settingSellCost" class="input" placeholder="e.g., 5 or 5%">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingTransportCost">Transport Allowance (€):</label>
+                            <input type="number" id="settingTransportCost" class="input" min="0" step="0.01">
+                        </div>
+                    </section>
+
+                    <section class="settings-section">
+                        <h2>Preferences</h2>
+                        <div class="form-group">
+                            <label for="settingCurrency">Currency:</label>
+                            <select id="settingCurrency" class="input">
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="USD">USD ($)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="settingTheme">Theme:</label>
+                            <select id="settingTheme" class="input">
+                                <option value="system">System</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </section>
+
+                    <section class="settings-section">
+                        <h2>Notifications</h2>
+                        <div class="form-group">
+                            <label for="settingNotifications">
+                                <input type="checkbox" id="settingNotifications">
+                                Enable deal radar alerts (80%+ confidence)
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="settings-section">
+                        <h2>Data Management</h2>
+                        <button class="button button-secondary" id="exportDataButton">📥 Export All Data</button>
+                        <button class="button button-secondary" id="importDataButton">📤 Import Data</button>
+                        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                        <button class="button button-danger" id="clearAllButton">🗑️ Clear All Data</button>
+                    </section>
+
+                    <section class="settings-section">
+                        <h2>Demo Data</h2>
+                        <button class="button button-secondary" id="loadDemoButton">📦 Load Demo Data</button>
+                        <button class="button button-secondary" id="clearDemoButton">🗑️ Clear Demo Data</button>
+                    </section>
+
+                    <section class="settings-section info">
+                        <h3>ℹ️ Disclaimer</h3>
+                        <p>FlipForge estimates are decision-support only. Resale prices, selling speed and profit are not guaranteed. Verify the item, seller, condition and comparable prices before buying.</p>
+                        <p>Always verify: serial/model numbers, condition, ownership/provenance, counterfeit risk, battery condition, compatibility, and repair requirements.</p>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+
+    <script src="/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(err => {
+                console.log('Service worker registration failed:', err);
+            });
+        }
+    </script>
+</body>
+</html>
