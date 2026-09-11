@@ -2,22 +2,23 @@
   "name": "FlipForge - Hunt smarter. Stack profit.",
   "short_name": "FlipForge",
   "description": "Turn €200 into €2,000 through disciplined marketplace flipping.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
+  "prefer_related_applications": false,
   "theme_color": "#f5f3ff",
   "background_color": "#ffffff",
   "categories": ["productivity", "finance"],
   "screenshots": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "form_factor": "narrow"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "wide"
@@ -25,16 +26,28 @@
   ],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -42,11 +55,12 @@
       "name": "Hunt for Deals",
       "short_name": "Hunt",
       "description": "Start hunting for profitable deals",
-      "url": "/?page=hunt",
+      "url": "./?page=hunt",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
@@ -54,11 +68,12 @@
       "name": "View Deals",
       "short_name": "Deals",
       "description": "View your deal pipeline",
-      "url": "/?page=deals",
+      "url": "./?page=deals",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
@@ -66,11 +81,12 @@
       "name": "Ledger",
       "short_name": "Ledger",
       "description": "Track your flips and profit",
-      "url": "/?page=ledger",
+      "url": "./?page=ledger",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }
